@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'>
+</head>
+<body>
+	<div id='main'></div>
+
+	<a href='#' click='alert(this.text)'>CLICK</a>
+
+	<script type="text/tiscript">
+
+    function alert(msg)
+	{
+		view.msgbox(#information, msg.htmlEscape());
+	}
+    
+    /*self.on("click","[onclick]",function()
+	{
+      return eval.call(this, this.attributes["onclick"] );
+    });*/
+
+	$(button).on("click", function()
+	{
+		return alert('LOL');
+	});
+
+	</script>
+
+	<a href='#' onclick='alert(this.text)'>CLICK</a>
+
+</body>
+</html>

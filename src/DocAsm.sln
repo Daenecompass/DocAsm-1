@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DocAsm", "DocAsm\DocAsm.csproj", "{E2C14B6F-6386-4371-A8BD-6132B4532A01}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GEV Control Layouts", "..\..\GIT\GEV-Control-Layouts\src\GEV Control Layouts\GEV Control Layouts.csproj", "{677BBE0E-F8C8-4AF3-A398-ED0CE7C22E69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GEV Control Layouts Plus", "..\..\GIT\GEV-Control-Layouts\src\GEV Control Layouts Plus\GEV Control Layouts Plus.csproj", "{D93E1488-F699-411A-852F-858BC268F87C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E2C14B6F-6386-4371-A8BD-6132B4532A01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2C14B6F-6386-4371-A8BD-6132B4532A01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2C14B6F-6386-4371-A8BD-6132B4532A01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2C14B6F-6386-4371-A8BD-6132B4532A01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{677BBE0E-F8C8-4AF3-A398-ED0CE7C22E69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{677BBE0E-F8C8-4AF3-A398-ED0CE7C22E69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{677BBE0E-F8C8-4AF3-A398-ED0CE7C22E69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{677BBE0E-F8C8-4AF3-A398-ED0CE7C22E69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D93E1488-F699-411A-852F-858BC268F87C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D93E1488-F699-411A-852F-858BC268F87C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D93E1488-F699-411A-852F-858BC268F87C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D93E1488-F699-411A-852F-858BC268F87C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {573293AA-B45B-4EC5-9128-D8C28BAC9EAB}
+	EndGlobalSection
+EndGlobal
