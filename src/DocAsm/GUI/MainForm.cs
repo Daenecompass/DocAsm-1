@@ -1,4 +1,6 @@
-﻿using DocAsm.Properties;
+﻿using DocAsm.GUI;
+using DocAsm.MarkDown;
+using DocAsm.Properties;
 using GEV.Layouts;
 using Markdig;
 using System;
@@ -17,8 +19,6 @@ namespace DocAsm
 {
     public partial class MainForm : GCLForm
     {
-        private MarkdownEdit m_Highligher;
-
         private bool m_UpdateReset = true;
         private bool m_UpdateNecessary = false;
 
@@ -28,93 +28,6 @@ namespace DocAsm
         public MainForm()
         {
             InitializeComponent();
-            this.m_Highligher = new MarkdownEdit(this.richTextBox1);
-
-            //this.gclHtmlControl1.HandleCreated += GclHtmlControl1_HandleCreated;
-        }
-
-        private void GclHtmlControl1_HandleCreated(object sender, EventArgs e)
-        {
-            //this.gclHtmlControl1.HTML = Resources.previewPage;
-            //this.gclHtmlControl1.ShowDebugger();
-        }
-
-        private List<TextSegment> RegenerateOutline(string text, int start, int length, int indentLevel)
-        {
-            List < TextSegment > result = new List<TextSegment>();
-
-            string source = text.Substring(start, length);
-            Regex regx = new Regex(@"^ {0,3}#{" + indentLevel + @"} (.+)$", RegexOptions.Multiline);
-
-            MatchCollection matches = regx.Matches(source);
-
-            for(int i = 0; i < matches.Count; i++)
-            {
-                length = -1;
-                if(i < matches.Count - 1)
-                {
-                    length = matches[i + 1].Index - matches[i].Index; 
-                }
-                else
-                {
-                    length = source.Length - matches[i].Index;
-                }
-
-                TextSegment seg = new TextSegment()
-                {
-                    Start = start + matches[i].Index,
-                    Length = length,
-                    Title = matches[i].Groups[1].Value
-                };
-
-                seg.SubSegments = this.RegenerateOutline(text, seg.Start, seg.Length, indentLevel + 1);
-                result.Add(seg);
-            }
-
-            return result;
-        }
-
-        private void BuildTree(List<TextSegment> segments)
-        {
-            TreeNode node = new TreeNode("ROOT");
-
-            this.BuildTree(segments, node);
-
-            this.treeView1.SuspendLayout();
-            this.treeView1.Nodes.Clear();
-            this.treeView1.Nodes.Add(node);
-            this.treeView1.ResumeLayout();
-        }
-
-        private void BuildTree(List<TextSegment> segments, TreeNode root)
-        {
-            foreach(TextSegment seg in segments)
-            {
-                TreeNode node = root.Nodes.Add(String.Format("{0}", seg.Title));
-                node.Tag = seg;
-                this.BuildTree(seg.SubSegments, node);
-            }
-        }
-
-        private List<FieldInfo> SearchFields(string text)
-        {
-            List<FieldInfo> result = new List<FieldInfo>();
-
-            Regex regx = new Regex(@"\$([a-z][a-z0-9_]+)", RegexOptions.IgnoreCase);
-
-            MatchCollection matches = regx.Matches(text);
-
-            foreach(Match match in matches)
-            {
-                string field = match.Groups[1].Value;
-
-                if(!result.Exists(f => f.Name == field))
-                {
-                    result.Add(new FieldInfo(field, ""));
-                }
-            }
-
-            return result;
         }
 
         private void treeView1_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
@@ -276,22 +189,15 @@ namespace DocAsm
         {
             if(this.m_UpdateReset && this.m_UpdateNecessary)
             {
-                var result = this.RegenerateOutline(this.richTextBox1.Text, 0, this.richTextBox1.Text.Length, 1);
+                var result = Utils.CreateOutline(this.richTextBox1.Text, 0, this.richTextBox1.Text.Length, 1);
 
                 this.treeView1.BeginUpdate();
-                this.BuildTree(result);
+                Utils.BuildTree(this.treeView1, result);
                 this.treeView1.ExpandAll();
                 this.treeView1.EndUpdate();
 
-                //this.richTextBox1.EndPaint();
-                //this.m_Highligher.Run();
-                //this.richTextBox1.BeginPaint();
-
-                this.dataGridView1.DataSource = this.SearchFields(this.richTextBox1.Text);
-
-                //string script = String.Format(@"Preview('{0}');", this.richTextBox1.Text);
-                //this.gclHtmlControl1.RunJavaScript(script);
-                this.webBrowser1.DocumentText = Markdown.ToHtml(this.richTextBox1.Text);
+                var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseGridTables().UsePipeTables().Build();
+                this.webBrowser1.DocumentText = Markdown.ToHtml(this.richTextBox1.Text, pipeline);
 
 
                 this.m_UpdateNecessary = false;
@@ -307,7 +213,8 @@ namespace DocAsm
 
         private void menuExport_Click(object sender, EventArgs e)
         {
-            new ExportForm(this.m_CurrentlyEditedDocument, this.richTextBox1.Text).ShowDialog();
+            //new ExportForm(this.m_CurrentlyEditedDocument, this.richTextBox1.Text).ShowDialog();
+            new ExportForm(this.richTextBox1.Text, this.m_CurrentlyEditedDocument).ShowDialog();
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DocAsm
+namespace DocAsm.MarkDown
 {
     public class TextSegment
     {

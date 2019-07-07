@@ -29,15 +29,11 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.dockContainer = new GEV.Layouts.Docking.GCLDockingContainer(this.components);
-            this.dockEditor = new GEV.Layouts.Docking.GCLDockablePanel();
             this.richTextBox1 = new DocAsm.RichTextBoxEx();
             this.dockPreview = new GEV.Layouts.Docking.GCLDockablePanel();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
-            this.dockFields = new GEV.Layouts.Docking.GCLDockablePanel();
-            this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.dockOutline = new GEV.Layouts.Docking.GCLDockablePanel();
             this.themeProvider = new GEV.Layouts.Theming.GCLThemeProvider(this.components);
             this.header = new GEV.Layouts.GCLWindowHeader();
@@ -50,14 +46,14 @@
             this.menuSaveAs = new System.Windows.Forms.ToolStripMenuItem();
             this.menuExport = new System.Windows.Forms.ToolStripMenuItem();
             this.menuClose = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.outlineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.previewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.timerUpdate = new System.Windows.Forms.Timer(this.components);
             this.dockContainer.SuspendLayout();
-            this.dockEditor.SuspendLayout();
             this.dockPreview.SuspendLayout();
-            this.dockFields.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.dockOutline.SuspendLayout();
             this.menuMain.SuspendLayout();
             this.SuspendLayout();
@@ -66,9 +62,9 @@
             // 
             this.treeView1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeView1.Font = new System.Drawing.Font("Segoe UI", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(238)));
-            this.treeView1.Location = new System.Drawing.Point(1, 1);
+            this.treeView1.Location = new System.Drawing.Point(1, 18);
             this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(198, 563);
+            this.treeView1.Size = new System.Drawing.Size(198, 546);
             this.treeView1.TabIndex = 0;
             this.treeView1.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.treeView1_NodeMouseClick);
             // 
@@ -76,9 +72,8 @@
             // 
             this.dockContainer.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(74)))), ((int)(((byte)(84)))), ((int)(((byte)(86)))));
             this.dockContainer.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(55)))), ((int)(((byte)(55)))));
-            this.dockContainer.Controls.Add(this.dockEditor);
+            this.dockContainer.Controls.Add(this.richTextBox1);
             this.dockContainer.Controls.Add(this.dockPreview);
-            this.dockContainer.Controls.Add(this.dockFields);
             this.dockContainer.Controls.Add(this.dockOutline);
             this.dockContainer.Dock = System.Windows.Forms.DockStyle.Fill;
             this.dockContainer.Location = new System.Drawing.Point(1, 33);
@@ -87,20 +82,6 @@
             this.dockContainer.TabIndex = 2;
             this.dockContainer.UseThemeColors = true;
             // 
-            // dockEditor
-            // 
-            this.dockEditor.BackColor = System.Drawing.Color.White;
-            this.dockEditor.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(55)))), ((int)(((byte)(55)))));
-            this.dockEditor.Controls.Add(this.richTextBox1);
-            this.dockEditor.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dockEditor.Location = new System.Drawing.Point(200, 0);
-            this.dockEditor.Name = "dockEditor";
-            this.dockEditor.Padding = new System.Windows.Forms.Padding(1);
-            this.dockEditor.Size = new System.Drawing.Size(885, 465);
-            this.dockEditor.TabIndex = 3;
-            this.dockEditor.Title = "Editor";
-            this.dockEditor.UseThemeColors = true;
-            // 
             // richTextBox1
             // 
             this.richTextBox1.AutoWordSelection = true;
@@ -108,10 +89,10 @@
             this.richTextBox1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.richTextBox1.Font = new System.Drawing.Font("Segoe UI Light", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.richTextBox1.HideSelection = false;
-            this.richTextBox1.Location = new System.Drawing.Point(1, 1);
+            this.richTextBox1.Location = new System.Drawing.Point(200, 0);
             this.richTextBox1.Name = "richTextBox1";
             this.richTextBox1.ShowSelectionMargin = true;
-            this.richTextBox1.Size = new System.Drawing.Size(883, 463);
+            this.richTextBox1.Size = new System.Drawing.Size(693, 565);
             this.richTextBox1.TabIndex = 0;
             this.richTextBox1.Text = "";
             this.richTextBox1.TextChanged += new System.EventHandler(this.richTextBox1_TextChanged);
@@ -123,10 +104,10 @@
             this.dockPreview.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(55)))), ((int)(((byte)(55)))));
             this.dockPreview.Controls.Add(this.webBrowser1);
             this.dockPreview.Dock = System.Windows.Forms.DockStyle.Right;
-            this.dockPreview.Location = new System.Drawing.Point(1085, 0);
+            this.dockPreview.Location = new System.Drawing.Point(893, 0);
             this.dockPreview.Name = "dockPreview";
             this.dockPreview.Padding = new System.Windows.Forms.Padding(1);
-            this.dockPreview.Size = new System.Drawing.Size(200, 465);
+            this.dockPreview.Size = new System.Drawing.Size(392, 565);
             this.dockPreview.TabIndex = 4;
             this.dockPreview.Title = "Preview";
             this.dockPreview.UseThemeColors = true;
@@ -134,36 +115,11 @@
             // webBrowser1
             // 
             this.webBrowser1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.webBrowser1.Location = new System.Drawing.Point(1, 1);
+            this.webBrowser1.Location = new System.Drawing.Point(1, 18);
             this.webBrowser1.MinimumSize = new System.Drawing.Size(20, 20);
             this.webBrowser1.Name = "webBrowser1";
-            this.webBrowser1.Size = new System.Drawing.Size(198, 463);
+            this.webBrowser1.Size = new System.Drawing.Size(390, 546);
             this.webBrowser1.TabIndex = 2;
-            // 
-            // dockFields
-            // 
-            this.dockFields.BackColor = System.Drawing.Color.White;
-            this.dockFields.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(47)))), ((int)(((byte)(55)))), ((int)(((byte)(55)))));
-            this.dockFields.Controls.Add(this.dataGridView1);
-            this.dockFields.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.dockFields.Location = new System.Drawing.Point(200, 465);
-            this.dockFields.Name = "dockFields";
-            this.dockFields.Padding = new System.Windows.Forms.Padding(1);
-            this.dockFields.Size = new System.Drawing.Size(1085, 100);
-            this.dockFields.TabIndex = 2;
-            this.dockFields.Title = "Fields";
-            this.dockFields.UseThemeColors = true;
-            // 
-            // dataGridView1
-            // 
-            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.dataGridView1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.dataGridView1.Location = new System.Drawing.Point(1, 1);
-            this.dataGridView1.Name = "dataGridView1";
-            dataGridViewCellStyle1.ForeColor = System.Drawing.Color.Black;
-            this.dataGridView1.RowsDefaultCellStyle = dataGridViewCellStyle1;
-            this.dataGridView1.Size = new System.Drawing.Size(1083, 98);
-            this.dataGridView1.TabIndex = 2;
             // 
             // dockOutline
             // 
@@ -232,10 +188,11 @@
             this.menuMain.ForeColor = System.Drawing.Color.White;
             this.menuMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
+            this.viewToolStripMenuItem,
             this.helpToolStripMenuItem});
             this.menuMain.Location = new System.Drawing.Point(0, 0);
             this.menuMain.Name = "menuMain";
-            this.menuMain.Size = new System.Drawing.Size(92, 33);
+            this.menuMain.Size = new System.Drawing.Size(216, 33);
             this.menuMain.TabIndex = 2;
             this.menuMain.Text = "gclMenuStrip1";
             // 
@@ -305,6 +262,36 @@
             this.menuClose.Text = "&Close";
             this.menuClose.Click += new System.EventHandler(this.menuClose_Click);
             // 
+            // viewToolStripMenuItem
+            // 
+            this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.outlineToolStripMenuItem,
+            this.previewToolStripMenuItem});
+            this.viewToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+            this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 29);
+            this.viewToolStripMenuItem.Text = "View";
+            // 
+            // outlineToolStripMenuItem
+            // 
+            this.outlineToolStripMenuItem.Checked = true;
+            this.outlineToolStripMenuItem.CheckOnClick = true;
+            this.outlineToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.outlineToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+            this.outlineToolStripMenuItem.Name = "outlineToolStripMenuItem";
+            this.outlineToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
+            this.outlineToolStripMenuItem.Text = "Outline";
+            // 
+            // previewToolStripMenuItem
+            // 
+            this.previewToolStripMenuItem.Checked = true;
+            this.previewToolStripMenuItem.CheckOnClick = true;
+            this.previewToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.previewToolStripMenuItem.ForeColor = System.Drawing.Color.White;
+            this.previewToolStripMenuItem.Name = "previewToolStripMenuItem";
+            this.previewToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
+            this.previewToolStripMenuItem.Text = "Preview";
+            // 
             // helpToolStripMenuItem
             // 
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -341,10 +328,7 @@
             this.Name = "MainForm";
             this.Text = "DocAsm";
             this.dockContainer.ResumeLayout(false);
-            this.dockEditor.ResumeLayout(false);
             this.dockPreview.ResumeLayout(false);
-            this.dockFields.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.dockOutline.ResumeLayout(false);
             this.menuMain.ResumeLayout(false);
             this.menuMain.PerformLayout();
@@ -357,9 +341,7 @@
         private System.Windows.Forms.TreeView treeView1;
         private DocAsm.RichTextBoxEx richTextBox1;
         private GEV.Layouts.Docking.GCLDockingContainer dockContainer;
-        private GEV.Layouts.Docking.GCLDockablePanel dockEditor;
         private GEV.Layouts.Docking.GCLDockablePanel dockPreview;
-        private GEV.Layouts.Docking.GCLDockablePanel dockFields;
         private GEV.Layouts.Docking.GCLDockablePanel dockOutline;
         private GEV.Layouts.Theming.GCLThemeProvider themeProvider;
         private GEV.Layouts.GCLWindowHeader header;
@@ -373,10 +355,12 @@
         private System.Windows.Forms.ToolStripMenuItem menuClose;
         private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.ToolStripMenuItem menuNew;
         private System.Windows.Forms.Timer timerUpdate;
         private System.Windows.Forms.WebBrowser webBrowser1;
+        private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem outlineToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem previewToolStripMenuItem;
     }
 }
 

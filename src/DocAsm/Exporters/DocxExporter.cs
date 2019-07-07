@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -11,11 +12,12 @@ using System.Xml.Linq;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using GEV.Layouts.Vanilla;
 using Markdig;
 using Markdig.Helpers;
 using Markdig.Renderers;
 using Markdig.Syntax;
-
+using Markdig.Syntax.Inlines;
 using A = DocumentFormat.OpenXml.Drawing;
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using PIC = DocumentFormat.OpenXml.Drawing.Pictures;
@@ -24,171 +26,103 @@ namespace DocAsm.Exporters
 {
     public class DocxExporter
     {
-        public WebBrowser Browser { get; set; }
         public string Source { get; set; }
         public string SourcePath { get; set; }
         public string TemplatePath { get; set; }
+        public SortableBindingList<FieldInfo> DocumentInfo { get; set; }
 
-        private static int m_NumberingCounter = 1;
-        private static int m_NumberingLevel = 0;
+        private int m_NumberingCounter = 200;
 
-        public void Export()
+        private WordprocessingDocument m_Document;
+
+        public void Export(string targetPath)
         {
-            m_NumberingCounter = 1;
-            m_NumberingLevel = 1;
-
-            using (WordprocessingDocument doc = WordprocessingDocument.CreateFromTemplate(this.TemplatePath))
+            using (this.m_Document = WordprocessingDocument.CreateFromTemplate(this.TemplatePath))
             {
-                var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
+                var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().UseGridTables().UsePipeTables().Build();
                 var markdown = Markdown.Parse(this.Source, pipeline);
 
-                string fragment = "";
-                bool fragmentBuilding = false;
-                bool sameLine = false;
-                foreach (StringLine slg in (markdown.LastChild as HtmlBlock).Lines)
+                foreach(Block block in markdown)
                 {
-                    sameLine = false;
-                    IMarkdownRenderer i;
-                    if(!slg.Slice.IsEmpty && slg.Slice.Text != null)
+                    if(block is HeadingBlock)
                     {
-                        string frag = slg.Slice.Text.Substring(slg.Slice.Start, slg.Slice.Length);
-
-                        #region Header
-                        if(frag.StartsWith("<h"))
+                        HeadingBlock b = block as HeadingBlock;
+                        string s = "";
+                        foreach (Inline run in b.Inline)
                         {
-
-                            string text = frag.Substring(4, frag.Length - 9);
-
-                            AddHeader(doc, text, int.Parse(frag[2].ToString()));
-
-                            fragment = "";
-                            fragmentBuilding = false;
-                            continue;
-                        }
-                        #endregion
-
-                        #region Image
-                        if (frag.StartsWith("<p><img"))
-                        {
-                            string file = frag.Substring(frag.IndexOf("src=") + 5);
-                            file = file.Substring(0, file.IndexOf("\"")).Replace('/', '\\');
-
-                            List<string> path = this.SourcePath.Split('\\').ToList();
-                            path.RemoveAt(path.Count - 1);
-
-                            string dir = String.Join("\\", path);
-                            file = dir + "\\" + file;
-
-                            string title = frag.Substring(frag.IndexOf("alt=") + 5);
-                            title = title.Substring(0, title.IndexOf("\""));
-
-                            AddImage(doc, file, title);
-
-                            fragment = "";
-                            fragmentBuilding = false;
-                            continue;
-                        }
-                        #endregion
-
-                        #region Paragraph
-                        if (frag.StartsWith("<p>"))
-                        {
-                            fragment += frag;
-                            fragmentBuilding = true;
-                            sameLine = true;
+                            s += this.Source.Substring(run.Span.Start, run.Span.Length);
                         }
 
-                        if (frag.EndsWith("</p>"))
+                        this.m_Document.MainDocumentPart.Document.Body.Append(this.MakeHeaderParagprah(s.ToString(), b.Level));
+                    }
+
+                    if(block is ParagraphBlock)
+                    {
+                        this.m_Document.MainDocumentPart.Document.Body.Append(this.ParseParagaph(block as ParagraphBlock));
+                    }
+
+                    if (block is ListBlock)
+                    {
+                        this.m_Document.MainDocumentPart.Document.Body.Append(this.ParseList(block as ListBlock));
+                    }
+
+                    if (block is Markdig.Extensions.Tables.Table)
+                    {
+                        //TODO Header row
+
+                        Markdig.Extensions.Tables.Table b = block as Markdig.Extensions.Tables.Table;
+                        Table table = this.MakeTable();
+
+                        foreach(Block rowBlock in b)
                         {
-                            if(!sameLine)
+                            Markdig.Extensions.Tables.TableRow mdRow = rowBlock as Markdig.Extensions.Tables.TableRow;
+                            TableRow row = this.MakeTableRow();
+
+                            foreach(Block cellBlock in mdRow)
                             {
-                                fragment += frag;
+                                Markdig.Extensions.Tables.TableCell mdCell = cellBlock as Markdig.Extensions.Tables.TableCell;
+                                TableCell cell = this.MakTableCell();
+
+                                foreach(Block content in mdCell)
+                                {
+                                    if(content is ParagraphBlock)
+                                    {
+                                        cell.Append(this.ParseParagaph(content as ParagraphBlock));
+                                    }
+                                }
+                                if(mdCell.Count == 0)
+                                {
+                                    cell.Append(this.MakeParagraph());
+                                }
+                                row.Append(cell);
                             }
-
-                            string text = fragment.Substring(3, fragment.Length - 7);
-
-                            AddParagpaph(doc, text);
-
-
-                            fragment = "";
-                            fragmentBuilding = false;
-                            continue;
-                        }
-                        #endregion
-
-                        #region Lists
-                        if (frag.StartsWith("<ul>"))
-                        {
-                            //SetNumbering(doc, false);
-                            //m_NumberingLevel++;
-
-                            //fragment = "";
-                            //fragmentBuilding = false;
-                            //continue;
+                            table.Append(row);
                         }
 
-                        if (frag.StartsWith("<ol>"))
-                        {
-                            //SetNumbering(doc, true);
-                            //m_NumberingLevel++;
+                        this.m_Document.MainDocumentPart.Document.Body.Append(table);
+                    }
 
-                            //fragment = "";
-                            //fragmentBuilding = false;
-                            //continue;
-                        }
+                    if (block is BlockQuote)
+                    {
 
-                        if (frag.StartsWith("<li>"))
-                        {
-                            string text = frag.Substring(4, frag.Length - 9);
+                    }
 
-                            AddParagpaph(doc, "* " +text);
+                    if(block is CodeBlock)
+                    {
 
-                            fragment = "";
-                            fragmentBuilding = false;
-                            continue;
-                        }
-
-                        if (frag.EndsWith("</ol>"))
-                        {
-                            //m_NumberingLevel--;
-
-                            //fragment = "";
-                            //fragmentBuilding = false;
-                            //continue;
-                        }
-
-                        if (frag.EndsWith("</ul>"))
-                        {
-                            //m_NumberingLevel--;
-
-                            //fragment = "";
-                            //fragmentBuilding = false;
-                            //continue;
-                        }
-                        #endregion
-
-                        #region Blocks
-                        if (frag.StartsWith("<blockquote>"))
-                        {
-
-                        }
-
-                        if (frag.StartsWith("</blockquote>"))
-                        {
-
-                        }
-                        #endregion
-
-                        #region Tables
-                        //TODO
-                        #endregion
                     }
                 }
 
-                //// Save changes to the main document part. 
-                doc.MainDocumentPart.Document.Save();
+                this.m_Document.PackageProperties.Creator = this.DocumentInfo.First(di => di.Name == "Creator").Value;
+                this.m_Document.PackageProperties.Category = this.DocumentInfo.First(di => di.Name == "Category").Value;
+                this.m_Document.PackageProperties.Description = this.DocumentInfo.First(di => di.Name == "Description").Value;
+                this.m_Document.PackageProperties.Subject = this.DocumentInfo.First(di => di.Name == "Subject").Value;
+                this.m_Document.PackageProperties.Title = this.DocumentInfo.First(di => di.Name == "Title").Value;
 
-                var doc2 = doc.SaveAs(@"D:\test.docx") as WordprocessingDocument;
+                //// Save changes to the main document part. 
+                this.m_Document.MainDocumentPart.Document.Save();
+
+                var doc2 = this.m_Document.SaveAs(targetPath) as WordprocessingDocument;
 
                 doc2.MainDocumentPart.DocumentSettingsPart.Settings.PrependChild<UpdateFieldsOnOpen>(new UpdateFieldsOnOpen()
                 {
@@ -196,59 +130,111 @@ namespace DocAsm.Exporters
                 });
                 doc2.MainDocumentPart.DocumentSettingsPart.Settings.Save();
 
-                doc.Close();
+                this.m_Document.Close();
                 doc2.Close();
             }
         }
 
-        public static Paragraph AddParagpaph(WordprocessingDocument doc, string text)
+        #region Block parsers
+
+        public Paragraph ParseParagaph(ParagraphBlock block)
         {
-            Paragraph p = new Paragraph();
+            ParagraphBlock b = block as ParagraphBlock;
 
-            string[] fragments = text.Split('<');
+            Paragraph p = this.MakeParagraph();
 
-            foreach(string fragment in fragments)
+            string s = "";
+            foreach (Inline run in b.Inline)
             {
-                if(fragment.StartsWith("strong>"))
+                if (run is LinkInline && (run as LinkInline).IsImage)
                 {
-                    string frag = fragment.Substring(7);
-                    RunProperties rp = new RunProperties(new Bold() { Val = new OnOffValue(true) });
-                    p.Append(new Run(rp, new Text() { Text = frag, Space = SpaceProcessingModeValues.Preserve }));
+                    LinkInline url = run as LinkInline;
 
+                    List<string> sourceFolder = this.SourcePath.Split('\\').ToList();
+                    sourceFolder.RemoveAt(sourceFolder.Count - 1);
+                    string file = String.Join("\\", sourceFolder) + "\\" + url.Url.Replace('/', '\\');
+                    p = this.MakeImageParagraph(file, url.FirstChild.ToString());
                 }
-                else if (fragment.StartsWith("/strong>"))
+                else if (run is EmphasisInline)
                 {
-                    string frag = fragment.Substring(8);
-                    RunProperties rp = new RunProperties(new Bold() { Val = new OnOffValue(false) });
-                    p.Append(new Run(rp, new Text() { Text = frag, Space = SpaceProcessingModeValues.Preserve }));
+                    bool bold = false;
+                    bool italic = false;
+                    bool underline = false;
+
+                    EmphasisInline r = run as EmphasisInline;
+                    if (r.DelimiterCount == 1)
+                    {
+                        italic = !italic;
+                    }
+                    else if (r.DelimiterCount == 2)
+                    {
+                        bold = !bold;
+                    }
+
+                    string text = this.Source.Substring(r.FirstChild.Span.Start, r.FirstChild.Span.Length);
+                    p.Append(this.MakeRun(text, bold, underline, italic));
                 }
-                else
+                else if (run is LiteralInline)
                 {
-                    p.Append(new Run(new Text() { Text = fragment, Space = SpaceProcessingModeValues.Preserve }));
+                    p.Append(this.MakeRun(this.Source.Substring(run.Span.Start, run.Span.Length), false, false, false));
                 }
             }
 
-            doc.MainDocumentPart.Document.Body.Append(p);
             return p;
         }
 
-        public static Paragraph AddHeader(WordprocessingDocument doc, string text, int indent)
+        public List<Paragraph> ParseList(ListBlock block, int indent = 0, int numbering = -1)
         {
-            Paragraph p = AddParagpaph(doc, text);
+            List<Paragraph> result = new List<Paragraph>();
 
-            if (p.ParagraphProperties == null)
+            if (numbering == -1)
             {
-                p.PrependChild<ParagraphProperties>(new ParagraphProperties());
+                numbering = this.InsertNewNumbering();
             }
 
-            p.ParagraphProperties.Append(new ParagraphStyleId() { Val = "Heading" + indent });
+            ListBlock b = block as ListBlock;
+            foreach (var item in b)
+            {
+                ListItemBlock li = item as ListItemBlock;
 
-            return p;
+                if (li.First() is ParagraphBlock)
+                {
+                    Paragraph p = this.ParseParagaph(li.First() as ParagraphBlock);
+                    this.ChangeToListItem(p, numbering, indent);
+                    result.Add(p);
+
+                    if (li.Count > 1 && li[1] is ListBlock)
+                    {
+                        result.AddRange(this.ParseList(li[1] as ListBlock, indent + 1, numbering));
+                    }
+                }
+            }
+
+            return result;
         }
 
-        public static void AddImage(WordprocessingDocument doc, string imagePath, string caption)
+        #endregion
+
+        #region Maker methods
+
+        public Paragraph MakeParagraph()
         {
-            ImagePart imagePart = doc.MainDocumentPart.AddImagePart(ImagePartType.Jpeg);
+            return new Paragraph();
+        }
+
+        public Run MakeRun(string text, bool isBold, bool isUnderline, bool isItalic)
+        {
+            RunProperties rp = new RunProperties(
+                new Bold() { Val = new OnOffValue(isBold) },
+                new Italic() { Val = new OnOffValue(isItalic) }
+                //TODO Underline
+                );
+            return new Run(rp, new Text() { Text = text, Space = SpaceProcessingModeValues.Preserve });
+        }
+
+        public Paragraph MakeImageParagraph(string imagePath, string caption)
+        {
+            ImagePart imagePart = this.m_Document.MainDocumentPart.AddImagePart(ImagePartType.Jpeg);
             int imgWidth = 0;
             int imgHeight = 0;
 
@@ -257,7 +243,7 @@ namespace DocAsm.Exporters
                 imgWidth = bmp.Width * 9525;
                 imgHeight = bmp.Height * 9525;
 
-                long pageWidth = (int)(GetPageWidth(doc) * 635.27); //Pacsiszám de ez jött ki
+                long pageWidth = (int)(this.GetPageWidth() * 635.27); //Pacsiszám de ez jött ki
 
                 if (imgWidth > pageWidth)
                 {
@@ -270,7 +256,7 @@ namespace DocAsm.Exporters
             {
                 imagePart.FeedData(stream);
             }
-            // Define the reference of the image.
+
             Drawing element = new Drawing(
                      new DW.Inline(
                          new DW.Extent() { Cx = imgWidth, Cy = imgHeight },
@@ -292,12 +278,12 @@ namespace DocAsm.Exporters
                              new A.GraphicData(
                                  new PIC.Picture(
                                      new PIC.NonVisualPictureProperties(
-                                         new PIC.NonVisualDrawingProperties(){ Id = (UInt32Value)0U, Name = caption },
+                                         new PIC.NonVisualDrawingProperties() { Id = (UInt32Value)0U, Name = caption },
                                          new PIC.NonVisualPictureDrawingProperties()),
                                      new PIC.BlipFill(
-                                         new A.Blip(new A.BlipExtensionList(new A.BlipExtension(){  Uri = "{28A0092B-C50C-407E-A947-70E740481C1C}" }))
+                                         new A.Blip(new A.BlipExtensionList(new A.BlipExtension() { Uri = "{28A0092B-C50C-407E-A947-70E740481C1C}" }))
                                          {
-                                             Embed = doc.MainDocumentPart.GetIdOfPart(imagePart),
+                                             Embed = this.m_Document.MainDocumentPart.GetIdOfPart(imagePart),
                                              CompressionState = A.BlipCompressionValues.Print
                                          },
                                          new A.Stretch(new A.FillRectangle())
@@ -326,14 +312,146 @@ namespace DocAsm.Exporters
 
             RunProperties rp = new RunProperties(new Italic() { Val = new OnOffValue(true) });
 
-            doc.MainDocumentPart.Document.Body.AppendChild(new Paragraph(new OpenXmlElement[]
+            return new Paragraph(new OpenXmlElement[]
             {
                 centerProps,
                 new Run(element),
                 new Break(),
                 new Run(rp, new Text(caption)),
-            }));
+            });
         }
+
+        public Paragraph MakeHeaderParagprah(string text, int indent)
+        {
+            Paragraph p = this.MakeParagraph();
+
+            if (p.ParagraphProperties == null)
+            {
+                p.PrependChild<ParagraphProperties>(new ParagraphProperties());
+            }
+
+            p.ParagraphProperties.Append(new ParagraphStyleId() { Val = "Heading" + indent });
+            p.Append(this.MakeRun(text, false, false, false));
+
+            return p;
+        }
+
+        public Table MakeTable()
+        {
+            Table table = new Table();
+
+            TableProperties tblProp = new TableProperties(
+                new TableWidth() { Width = "5000", Type = TableWidthUnitValues.Pct }, //újabb pacsiszám
+                new TableBorders(
+                    new TopBorder() { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 8 },
+                    new BottomBorder() { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 8 },
+                    new LeftBorder() { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 8 },
+                    new RightBorder() { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 8 },
+                    new InsideHorizontalBorder() { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 8 },
+                    new InsideVerticalBorder() { Val = new EnumValue<BorderValues>(BorderValues.Single), Size = 8 }
+                )
+            );
+
+            table.AppendChild<TableProperties>(tblProp);
+
+            return table;
+        }
+
+        public TableRow MakeTableRow()
+        {
+            TableRow row = new TableRow();
+
+            return row;
+        }
+
+        public TableCell MakTableCell()
+        {
+            TableCell cell = new TableCell();
+
+            return cell;
+        }
+
+        public int InsertNewNumbering()
+        {
+            int result = this.m_NumberingCounter++;
+
+            NumberingDefinitionsPart numberingPart = this.m_Document.MainDocumentPart.NumberingDefinitionsPart;
+            if (numberingPart == null)
+            {
+                numberingPart = this.m_Document.MainDocumentPart.AddNewPart<NumberingDefinitionsPart>("NumberingDefinitionsPart");
+            }
+
+            Numbering element = new Numbering(
+                new AbstractNum(
+                  new Level()
+                  {
+                      LevelIndex = 0,
+                      NumberingFormat = new NumberingFormat() { Val = NumberFormatValues.Bullet },
+                      LevelText = new LevelText() { Val = "" }
+                  }
+                )
+                {
+                    AbstractNumberId = m_NumberingCounter,
+                    MultiLevelType = new MultiLevelType() {  Val = MultiLevelValues.HybridMultilevel },
+                },
+                new NumberingInstance()
+                {
+                    NumberID = result,
+                    AbstractNumId = new AbstractNumId() { Val = m_NumberingCounter }
+                }
+            );
+
+            numberingPart.Numbering = element;
+            element.Save(numberingPart);
+
+            return result;
+        }
+
+        public void ChangeToListItem(Paragraph p, int numbering, int indent)
+        {
+            if (p.ParagraphProperties == null)
+            {
+                p.PrependChild<ParagraphProperties>(new ParagraphProperties());
+            }
+
+            p.ParagraphProperties.Append(new NumberingProperties(new NumberingLevelReference() { Val = indent }, new NumberingId() { Val = numbering }));
+        }
+
+        #endregion
+
+        #region Utils
+
+        public static string GetStyleIdFromStyleName(WordprocessingDocument doc, string styleName)
+        {
+            StyleDefinitionsPart stylePart = doc.MainDocumentPart.StyleDefinitionsPart;
+            string styleId = stylePart.Styles.Descendants<StyleName>().Where(s => s.Val.Value.Equals(styleName.ToLower()) && (((Style)s.Parent).Type == StyleValues.Paragraph))
+                .Select(n => ((Style)n.Parent).StyleId).FirstOrDefault();
+
+            if (styleId == null)
+            {
+                string type = stylePart.Styles.LatentStyles.First().GetType().ToString();
+
+                var styles = stylePart.Styles.LatentStyles.Descendants<LatentStyleExceptionInfo>().Where(s => s.Name == styleName.ToLower());
+
+                styleId = stylePart.Styles.LatentStyles.Descendants<StyleName>().Where(s => s.Val.Value.Equals(styleName) && (((Style)s.Parent).Type == StyleValues.Paragraph))
+                .Select(n => ((Style)n.Parent).StyleId).FirstOrDefault();
+            }
+            return styleId;
+        }
+
+        public long GetPageWidth()
+        {
+            SectionProperties sectionProperties = this.m_Document.MainDocumentPart.Document.Body.GetFirstChild<SectionProperties>();
+
+            PageSize pageSize = sectionProperties.GetFirstChild<PageSize>();
+            PageMargin pageMargin = sectionProperties.GetFirstChild<PageMargin>();
+
+            return pageSize.Width - pageMargin.Left - pageMargin.Right;
+        }
+
+        #endregion
+
+        //============================================ OLD CODE //============================================
 
         public static void SetNumbering(WordprocessingDocument doc, bool numbered)
         {
@@ -360,40 +478,5 @@ namespace DocAsm.Exporters
     //        m_NumberingCounter++;
         }
 
-        public static void AddListElement(WordprocessingDocument doc, string text)
-        {
-            ParagraphProperties pp = new ParagraphProperties(new NumberingProperties(new NumberingLevelReference() { Val = m_NumberingLevel }, new NumberingId() { Val = m_NumberingCounter }));
-
-            Paragraph p = AddParagpaph(doc, text);
-            p.InsertAt(pp, 0);
-        }
-
-        public static string GetStyleIdFromStyleName(WordprocessingDocument doc, string styleName)
-        {
-            StyleDefinitionsPart stylePart = doc.MainDocumentPart.StyleDefinitionsPart;
-            string styleId = stylePart.Styles.Descendants<StyleName>().Where(s => s.Val.Value.Equals(styleName.ToLower()) && (((Style)s.Parent).Type == StyleValues.Paragraph))
-                .Select(n => ((Style)n.Parent).StyleId).FirstOrDefault();
-
-            if(styleId == null)
-            {
-                string type = stylePart.Styles.LatentStyles.First().GetType().ToString();
-
-                var styles = stylePart.Styles.LatentStyles.Descendants<LatentStyleExceptionInfo>().Where(s => s.Name == styleName.ToLower());
-
-                styleId = stylePart.Styles.LatentStyles.Descendants<StyleName>().Where(s => s.Val.Value.Equals(styleName) && (((Style)s.Parent).Type == StyleValues.Paragraph))
-                .Select(n => ((Style)n.Parent).StyleId).FirstOrDefault();
-            }
-            return styleId;
-        }
-
-        public static long GetPageWidth(WordprocessingDocument doc)
-        {
-            SectionProperties sectionProperties = doc.MainDocumentPart.Document.Body.GetFirstChild<SectionProperties>();
-
-            PageSize pageSize = sectionProperties.GetFirstChild<PageSize>();
-            PageMargin pageMargin = sectionProperties.GetFirstChild<PageMargin>();
-
-            return pageSize.Width - pageMargin.Left - pageMargin.Right;
-        }
     }
 }

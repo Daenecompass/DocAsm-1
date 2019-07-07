@@ -36,11 +36,8 @@
     <Reference Include="DocumentFormat.OpenXml, Version=2.9.1.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
       <HintPath>..\packages\DocumentFormat.OpenXml.2.9.1\lib\net46\DocumentFormat.OpenXml.dll</HintPath>
     </Reference>
-    <Reference Include="Markdig, Version=0.17.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Markdig.0.17.0\lib\net40\Markdig.dll</HintPath>
-    </Reference>
-    <Reference Include="SciterSharpWindows">
-      <HintPath>..\..\..\GIT\GEV-Control-Layouts\src\packages\SciterSharpWindows.2.0.35\lib\net45\SciterSharpWindows.dll</HintPath>
+    <Reference Include="Markdig, Version=0.17.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Markdig.0.17.1\lib\net40\Markdig.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -66,31 +63,40 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exporters\DocxExporter.cs" />
-    <Compile Include="Exporters\DocxRenderer.cs" />
     <Compile Include="FieldInfo.cs" />
-    <Compile Include="ExportForm.cs">
+    <Compile Include="GUI\ExportForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="ExportForm.Designer.cs">
+    <Compile Include="GUI\ExportForm.Designer.cs">
       <DependentUpon>ExportForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="MainForm.cs">
+    <Compile Include="GUI\ExportWizard.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="GUI\ExportWizard.Designer.cs">
+      <DependentUpon>ExportWizard.cs</DependentUpon>
+    </Compile>
+    <Compile Include="GUI\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainForm.Designer.cs">
+    <Compile Include="GUI\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="MarkdownEdit.cs" />
+    <Compile Include="_Old\MarkdownEdit.cs" />
+    <Compile Include="MarkDown\Utils.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RichTextBoxEx.cs">
+    <Compile Include="_Old\RichTextBoxEx.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="TextSegment.cs" />
-    <EmbeddedResource Include="ExportForm.resx">
+    <Compile Include="MarkDown\TextSegment.cs" />
+    <EmbeddedResource Include="GUI\ExportForm.resx">
       <DependentUpon>ExportForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="MainForm.resx">
+    <EmbeddedResource Include="GUI\ExportWizard.resx">
+      <DependentUpon>ExportWizard.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="GUI\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -118,13 +124,17 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\GIT\GEV-Control-Layouts\src\GEV Control Layouts\GEV Control Layouts.csproj">
-      <Project>{677BBE0E-F8C8-4AF3-A398-ED0CE7C22E69}</Project>
+    <ProjectReference Include="..\..\modules\GEV-Control-Layouts\src\GEV Control Layouts Plus\GEV Control Layouts Plus.csproj">
+      <Project>{D93E1488-F699-411A-852F-858BC268F87C}</Project>
+      <Name>GEV Control Layouts Plus</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\modules\GEV-Control-Layouts\src\GEV Control Layouts\GEV Control Layouts.csproj">
+      <Project>{677bbe0e-f8c8-4af3-a398-ed0ce7c22e69}</Project>
       <Name>GEV Control Layouts</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\previewPage.txt" />
+    <Content Include="Resources\previewPage.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
