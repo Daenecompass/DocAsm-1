@@ -31,7 +31,7 @@
             this.components = new System.ComponentModel.Container();
             this.treeView1 = new System.Windows.Forms.TreeView();
             this.dockContainer = new GEV.Layouts.Docking.GCLDockingContainer(this.components);
-            this.richTextBox1 = new DocAsm.RichTextBoxEx();
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
             this.dockPreview = new GEV.Layouts.Docking.GCLDockablePanel();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
             this.dockOutline = new GEV.Layouts.Docking.GCLDockablePanel();
@@ -339,7 +339,7 @@
         #endregion
 
         private System.Windows.Forms.TreeView treeView1;
-        private DocAsm.RichTextBoxEx richTextBox1;
+        private System.Windows.Forms.RichTextBox richTextBox1;
         private GEV.Layouts.Docking.GCLDockingContainer dockContainer;
         private GEV.Layouts.Docking.GCLDockablePanel dockPreview;
         private GEV.Layouts.Docking.GCLDockablePanel dockOutline;
