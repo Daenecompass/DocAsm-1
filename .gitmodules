@@ -1,6 +1,3 @@
 [submodule "modules\\GEV-Control-Layouts"]
 	path = modules\\GEV-Control-Layouts
-	url = https://github.com/GanzYouthWorkshop/GEV-Control-Layouts
-[submodule "modules\\GEV-Common-Library"]
-	path = modules\\GEV-Common-Library
-	url = https://github.com/GanzYouthWorkshop/GEV-Common-Library
+	url = git://github.com/GanzYouthWorkshop/GEV-Control-Layouts/
